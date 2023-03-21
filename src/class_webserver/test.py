@@ -15,7 +15,15 @@ class with_prefix:
     def get_status(self):
         return "with_prefix"
 
+class with_params:
+    def __init__(self):
+        pass
+    def get_with_params(self, param1=None, param2=None):
+        return "with_params:param1={}:param2={}".format(param1, param2)
+
+
 class_webserver([
-        with_prefix(),
         no_prefix(),
+        with_prefix(),
+        with_params(),
     ])
