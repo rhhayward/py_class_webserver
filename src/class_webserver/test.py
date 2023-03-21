@@ -21,9 +21,15 @@ class with_params:
     def get_with_params(self, param1=None, param2=None):
         return "with_params:param1={}:param2={}".format(param1, param2)
 
+class with_param_and_body:
+    def __init__(self):
+        pass
+    def post_with_param_and_body(self, param=None, body_object=None):
+        return "with_param_and_body:param={}:object={}".format(param, body_object)
 
 class_webserver([
         no_prefix(),
         with_prefix(),
         with_params(),
+        with_param_and_body(),
     ])

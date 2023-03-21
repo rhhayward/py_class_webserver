@@ -2,11 +2,18 @@ from aiohttp import ClientSession, web
 from functools import partial
 from inspect import signature
 
-def handler(obj, method, request):
+async def handler(obj, method, request):
+    jsonObject = None
     ### handler will pull params from request to execute obj.method()
     f = getattr(obj,method)
     for param in signature(f).parameters:
-        f = partial(f, request.match_info.get(param, None))
+        if param.startswith('body_'):
+            name = param.replace('body_','')
+            if jsonObject == None:
+                jsonObject = await request.json()
+            f = partial(f, jsonObject[name])
+        else:
+            f = partial(f, request.match_info.get(param, None))
     return web.json_response(f())
 
 def getMethods(obj):
@@ -16,14 +23,16 @@ def getMethods(obj):
 def getPath(obj, method):
     ### getPath builds up an http path for a given obj.method(),
     ###    first obj.prefix, if present, then the method name sans
-    ###    http verb, then for each method argument, a path
-    ###    parameter in format /param_name/{param_name:.*}/
+    ###    http verb, then for each method argument that doesn't
+    ###    start with 'body_', a path parameter in format
+    ###    `/param_name/{param_name:.*}/`.
     prefix = '' if hasattr(obj, 'prefix') == False else obj.prefix
     path = r'{}/{}/'.format(prefix, stripVerb(method))
 
     for param in signature(getattr(obj, method)).parameters:
-        format = '{' + param + ':.*}'
-        path += '{}/{}/'.format(param, format)
+        if param.startswith('body_') == False:
+            format = '{' + param + ':.*}'
+            path += '{}/{}/'.format(param, format)
     return path
 
 def stripVerb(m):
@@ -39,15 +48,14 @@ def getVerb(m):
     ### getVerb returns http verb prefix if present, else None
     if m.startswith('get_'):
         return 'get'
-
-    if m.startswith('delete_'):
+    elif m.startswith('delete_'):
         return 'delete'
-
-    if m.startswith('put_'):
+    elif m.startswith('put_'):
         return 'put'
-
-    if m.startswith('post_'):
+    elif m.startswith('post_'):
         return 'post'
+    else:
+        return None
 
 def class_webserver(objects, port=8001):
     ### class_webserver takes a list of objects, and for each object
@@ -63,7 +71,7 @@ def class_webserver(objects, port=8001):
             verb = getVerb(method)
             if verb != None:
                 path = getPath(obj, method)
-                print("<{}> registered path <{}>".format(obj.__class__.__name__, path))
+                print("<{}> registered path {}:<{}>".format(obj.__class__.__name__, verb, path))
                 app.add_routes([ web.route(verb, path, partial(handler, obj, method)) ])
 
     web.run_app(app, port=port)
