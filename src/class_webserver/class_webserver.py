@@ -3,8 +3,8 @@ from functools import partial
 from inspect import signature
 
 async def handler(obj, method, request):
-    jsonObject = None
     ### handler will pull params from request to execute obj.method()
+    jsonObject = None
     f = getattr(obj,method)
     for param in signature(f).parameters:
         if param.startswith('body_'):
