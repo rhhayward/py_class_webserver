@@ -44,6 +44,6 @@ Running this will result in:
 And running curl on that endpoint will result in
 
 ```
-$ curl localhost:8001/with_param_and_body/param/test/ --data '{"object":"value"}'
+$ curl localhost:8001/with_param_and_body/param/test --data '{"object":"value"}'
 "with_param_and_body:param=test:object=value"
 ```
