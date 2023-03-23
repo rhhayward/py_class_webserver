@@ -27,7 +27,7 @@ class with_param_and_body:
     def post_with_param_and_body(self, param=None, body_object=None):
         return "with_param_and_body:param={}:object={}".format(param, body_object)
 
-class_webserver([
+class_webserver.serve([
         with_param_and_body(),
     ])
 

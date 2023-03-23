@@ -57,7 +57,7 @@ def getVerb(m):
     else:
         return None
 
-def class_webserver(objects, port=8001):
+def serve(objects, port=8001):
     ### class_webserver takes a list of objects, and for each object
     ###    sets up a path for each method that begins with an http verb
     ###    (get, delete, post, put).  It sets up method arguments as
