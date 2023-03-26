@@ -14,7 +14,13 @@ async def handler(obj, method, request):
             f = partial(f, jsonObject[name])
         else:
             f = partial(f, request.match_info.get(param, None))
-    return web.json_response(f())
+
+    result = f()
+
+    if isinstance(result, (bytes, bytearray)):
+        return web.Response(body=result)
+
+    return web.json_response(result)
 
 def getMethods(obj):
     ### getMethods returns list of object methods
