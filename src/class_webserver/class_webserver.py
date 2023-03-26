@@ -27,7 +27,7 @@ def getPath(obj, method):
     ###    start with 'body_', a path parameter in format
     ###    `/param_name/{param_name:.*}`.
     fragment = stripVerb(method)
-    path = r'/{}'.format(fragment) if hasattr(obj, 'prefix') == False else r'{}/{}'.format(obj.prefix, fragment)
+    path = r'/{}'.format(fragment) if hasattr(obj, 'prefix') == False else r'/{}/{}'.format(obj.prefix, fragment)
 
     for param in signature(getattr(obj, method)).parameters:
         if param.startswith('body_') == False:
