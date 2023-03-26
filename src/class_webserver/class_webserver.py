@@ -26,8 +26,8 @@ def getPath(obj, method):
     ###    http verb, then for each method argument that doesn't
     ###    start with 'body_', a path parameter in format
     ###    `/param_name/{param_name:.*}`.
-    prefix = '' if hasattr(obj, 'prefix') == False else obj.prefix
-    path = r'{}/{}'.format(prefix, stripVerb(method))
+    fragment = stripVerb(method)
+    path = r'/{}'.format(fragment) if hasattr(obj, 'prefix') == False else r'{}/{}'.format(obj.prefix, fragment)
 
     for param in signature(getattr(obj, method)).parameters:
         if param.startswith('body_') == False:
