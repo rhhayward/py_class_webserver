@@ -4,23 +4,26 @@ from inspect import signature
 
 async def handler(obj, method, request):
     ### handler will pull params from request to execute obj.method()
-    jsonObject = None
-    f = getattr(obj,method)
-    for param in signature(f).parameters:
-        if param.startswith('body_'):
-            name = param.replace('body_','')
-            if jsonObject == None:
-                jsonObject = await request.json()
-            f = partial(f, jsonObject[name])
-        else:
-            f = partial(f, request.match_info.get(param, None))
+    try:
+        jsonObject = None
+        f = getattr(obj,method)
+        for param in signature(f).parameters:
+            if param.startswith('body_'):
+                name = param.replace('body_','')
+                if jsonObject == None:
+                    jsonObject = await request.json()
+                f = partial(f, jsonObject[name])
+            else:
+                f = partial(f, request.match_info.get(param, None))
 
-    result = f()
+        result = f()
 
-    if isinstance(result, (bytes, bytearray)):
-        return web.Response(body=result)
+        if isinstance(result, (bytes, bytearray)):
+            return web.Response(body=result)
 
-    return web.json_response(result)
+        return web.json_response(result)
+    except:
+        return web.HTTPInternalServerError()
 
 def getMethods(obj):
     ### getMethods returns list of object methods
