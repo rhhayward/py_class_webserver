@@ -20,15 +20,20 @@ class SingleServerBackgroundExecutor():
 
     def __init__(self, options):
         self.parallelism = options[PARALLELISM] if PARALLELISM in options else DEFAULT_PARALLELISM
-        self.threadPoolExecutor = ThreadPoolExecutor(self.parallelism)
+        self.threadPools = {}
         self.timeout = options[TIMEOUT] if TIMEOUT in options else DEFAULT_TIMEOUT
         self.executionIds = {}
 
-    def submit(self, f):
-        future = self.threadPoolExecutor.submit(f)
+    def submit(self, f, method):
+        future = self.getThreadPool(method).submit(f)
         executionId = str( round(time.time()*1000) )
         self.executionIds[executionId] = future
         return executionId
+
+    def getThreadPool(self, method):
+        if method not in self.threadPools:
+            self.threadPools[method] = ThreadPoolExecutor(self.parallelism)
+        return self.threadPools[method]
 
     ### returns (result, status)
     def getResult(self,executionId):
@@ -48,7 +53,7 @@ class ClassWebserver():
         self.allowBackground = options[ALLOW_BACKGROUND] if ALLOW_BACKGROUND in options else False
         self.backgroundExecutor = SingleServerBackgroundExecutor(options) if self.allowBackground is True else None
 
-    async def handler(self, obj, method, request, options={}):
+    async def handler(self, obj, method, request):
         ### handler will pull params from request to execute obj.method()
         try:
             jsonObject = None
@@ -66,7 +71,7 @@ class ClassWebserver():
                 result = f()
                 return self.formatResult(result)
             else:
-                execution_id = self.backgroundExecutor.submit(f)
+                execution_id = self.backgroundExecutor.submit(f, method)
                 result, status = self.backgroundExecutor.getResult(execution_id)
                 if status == STATUS_COMPLETED:
                     return self.formatResult(result)
