@@ -48,6 +48,9 @@ class SingleServerBackgroundExecutor():
         else:
             return None, STATUS_NOTFOUND
 
+    def getExecutions(self):
+        return self.executionIds.keys()
+
 class ClassWebserver():
     def __init__(self, options):
         self.allowBackground = options[ALLOW_BACKGROUND] if ALLOW_BACKGROUND in options else False
@@ -130,7 +133,12 @@ class ClassWebserver():
         else:
             return None
 
-    def checkExecution(self, request ):
+    def getExecutions(self, request):
+        executions = [{'id':execution_id,'href':f'/execution/{execution_id}'} 
+            for execution_id in self.backgroundExecutor.getExecutions()]
+        return web.json_response(executions)
+
+    def checkExecution(self, request):
         execution_id = request.match_info.get('execution_id', None)
         result, status = self.backgroundExecutor.getResult(execution_id)
 
@@ -146,7 +154,9 @@ class ClassWebserver():
 
         if self.allowBackground is True:
             app.add_routes([ web.route('get', '/execution/{execution_id:.*}', self.checkExecution) ])
-            print("added route for /execution/{execution_id:.*}")
+            print("added GET /execution/{execution_id:.*}")
+            app.add_routes([ web.route('get', '/executions', self.getExecutions) ])
+            print("added GET /executions")
 
         for obj in objects:
             methods = self.getMethods(obj)
