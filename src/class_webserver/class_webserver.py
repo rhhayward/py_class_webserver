@@ -10,6 +10,7 @@ PARALLELISM = 'parallelism'
 STATUS_COMPLETED = 'completed'
 STATUS_NOTFOUND = 'notfound'
 STATUS_RUNNING = 'running'
+STATUS_EXCEPTION = 'exception'
 TIMEOUT = 'timeout'
 
 DEFAULT_PARALLELISM = 10
@@ -45,6 +46,9 @@ class SingleServerBackgroundExecutor():
                 return result, STATUS_COMPLETED
             except TimeoutError as te:
                 return None, STATUS_RUNNING
+            except Exception as e:
+                print("exception e={}".format(e))
+                return None, STATUS_EXCEPTION
         else:
             return None, STATUS_NOTFOUND
 
@@ -148,6 +152,8 @@ class ClassWebserver():
             return web.json_response({'id':execution_id,'href':f'/execution/{execution_id}'}, status=202 )
         elif status == STATUS_NOTFOUND:
             return web.HTTPNotFound()
+        elif status == STATUS_EXCEPTION:
+            return web.HTTPInternalServerError()
 
     def serve(self, objects, port):
         app = web.Application()
