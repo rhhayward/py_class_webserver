@@ -12,7 +12,10 @@ async def handler(obj, method, request):
                 name = param.replace('body_','')
                 if jsonObject == None:
                     jsonObject = await request.json()
-                f = partial(f, jsonObject[name])
+                if name in jsonObject:
+                    f = partial(f, jsonObject[name])
+                else:
+                    f = partial(f, None)
             else:
                 f = partial(f, request.match_info.get(param, None))
 
