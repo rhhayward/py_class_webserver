@@ -16,6 +16,9 @@ async def handler(obj, method, request):
                     f = partial(f, jsonObject[name])
                 else:
                     f = partial(f, None)
+            elif param.startswith('header_'):
+                name = param.replace('header_','')
+                f = partial(f, request.headers.get(name, None))
             else:
                 f = partial(f, request.match_info.get(param, None))
 
@@ -42,7 +45,7 @@ def getPath(obj, method):
     path = r'/{}'.format(fragment) if hasattr(obj, 'prefix') == False else r'/{}/{}'.format(obj.prefix, fragment)
 
     for param in signature(getattr(obj, method)).parameters:
-        if param.startswith('body_') == False:
+        if param.startswith('body_') == False and param.startswith('header_') == False:
             format = '{' + param + ':.*}'
             path += '/{}/{}'.format(param, format)
     return path
